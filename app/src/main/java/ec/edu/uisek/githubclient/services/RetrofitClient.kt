@@ -55,6 +55,7 @@ object RetrofitClient {
         }
     }
 
+
     /**
      * Cliente HTTP configurado con los interceptors necesarios
      */
