@@ -61,6 +61,7 @@ class RepoForm : AppCompatActivity() {
             override fun onResponse(call: Call<Repo?>, response: Response<Repo?>) {
                 if (response.isSuccessful){
                     showMessage("Repositorio creado exitosamente")
+                    finish()
 
                 }else {
                     val errorMessage = when (response.code()){
