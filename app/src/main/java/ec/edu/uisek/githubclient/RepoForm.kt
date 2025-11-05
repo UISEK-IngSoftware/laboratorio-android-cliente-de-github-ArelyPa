@@ -23,7 +23,7 @@ class RepoForm : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityRepoFormBinding.inflate(layoutInflater)
-            setContentView(binding.root)
+        setContentView(binding.root)
 
         binding.cancelButton.setOnClickListener { finish() }
         binding.saveButton.setOnClickListener { createRepo() }
