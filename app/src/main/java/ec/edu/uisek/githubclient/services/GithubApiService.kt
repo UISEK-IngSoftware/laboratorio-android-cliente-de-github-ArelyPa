@@ -4,8 +4,11 @@ import ec.edu.uisek.githubclient.models.Repo
 import ec.edu.uisek.githubclient.models.RepoRequest
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GithubApiService {
@@ -19,4 +22,19 @@ interface GithubApiService {
     fun addRepo(
         @Body repoRequest: RepoRequest
     ): Call<Repo>
+
+    // Función añadida para editar
+    @PATCH("repos/{owner}/{repo}")
+    fun updateRepo(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Body repoRequest: RepoRequest
+    ): Call<Repo>
+
+    // Función añadida para eliminar
+    @DELETE("repos/{owner}/{repo}")
+    fun deleteRepo(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String
+    ): Call<Unit>
 }
