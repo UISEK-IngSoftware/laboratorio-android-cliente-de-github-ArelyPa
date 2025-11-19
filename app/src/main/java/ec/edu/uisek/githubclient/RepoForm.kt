@@ -3,13 +3,11 @@ package ec.edu.uisek.githubclient
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import ec.edu.uisek.githubclient.databinding.ActivityRepoFormBinding
 import ec.edu.uisek.githubclient.models.Repo
 import ec.edu.uisek.githubclient.models.RepoRequest
+import ec.edu.uisek.githubclient.models.UpdateRepoRequest // Asegúrate de que este import exista
 import ec.edu.uisek.githubclient.services.RetrofitClient
 import retrofit2.Call
 import retrofit2.Callback
@@ -22,16 +20,16 @@ class RepoForm : AppCompatActivity() {
     private var repoNameToEdit: String? = null
     private var repoOwner: String? = null
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityRepoFormBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Revisa si la pantalla se abrió para editar o para crear
         isEditMode = intent.getBooleanExtra("IS_EDIT_MODE", false)
 
         if (isEditMode) {
+            // MODO EDICIÓN: Rellena los datos
             title = "Editar Repositorio"
             repoNameToEdit = intent.getStringExtra("REPO_NAME")
             repoOwner = intent.getStringExtra("REPO_OWNER")
@@ -41,14 +39,23 @@ class RepoForm : AppCompatActivity() {
             binding.repoNameInput.isEnabled = false
             binding.repoDescriptionInput.setText(description)
         } else {
-            title = "Nuevo Repositorio"
+            // MODO CREACIÓN: Deja los campos vacíos
+            title = "Crear Nuevo Repositorio"
         }
 
         binding.cancelButton.setOnClickListener { finish() }
-        binding.saveButton.setOnClickListener { createRepo() }
+
+        // --- ¡ESTE ES EL CAMBIO PRINCIPAL QUE DEBES HACER! ---
+        // Antes: binding.saveButton.setOnClickListener { createRepo() }
+        // Ahora, debe llamar a handleSave() para que decida qué hacer.
+        binding.saveButton.setOnClickListener { handleSave() }
     }
+
+    /**
+     * Decide si llamar a la función de crear o de actualizar.
+     */
     private fun handleSave() {
-        // La validación del nombre solo es necesaria en modo creación
+        // La validación del nombre solo es necesaria en modo creación.
         if (!isEditMode && !validateForm()) {
             return
         }
@@ -59,91 +66,76 @@ class RepoForm : AppCompatActivity() {
             createRepo()
         }
     }
-    private fun validateForm() : Boolean{
+
+    /**
+     * Valida que el nombre del repositorio no esté vacío y no contenga espacios.
+     */
+    private fun validateForm(): Boolean {
         val repoName = binding.repoNameInput.text.toString()
-
-        if (repoName.isBlank()){
-            binding.repoNameInput.error= "El nombre del repositorio es requerido"
+        if (repoName.isBlank()) {
+            binding.repoNameInput.error = "El nombre es requerido"
             return false
         }
-
         if (repoName.contains(" ")) {
-            binding.repoNameInput.error = "El nombre del repositorio no puede contener espacios"
+            binding.repoNameInput.error = "El nombre no puede tener espacios"
             return false
         }
-
         binding.repoNameInput.error = null
         return true
     }
 
+    /**
+     * Llama a la API para crear un nuevo repositorio.
+     */
     private fun createRepo() {
-        if (!validateForm()) {
-            return
-        }
         val repoName = binding.repoNameInput.text.toString().trim()
         val repoDescription = binding.repoDescriptionInput.text.toString().trim()
-
         val repoRequest = RepoRequest(repoName, repoDescription)
-        val apiService = RetrofitClient.gitHubApiService
-        val call = apiService.addRepo(repoRequest)
 
-        call.enqueue(object: Callback<Repo>{
-            override fun onResponse(call: Call<Repo?>, response: Response<Repo?>) {
-                if (response.isSuccessful){
+        RetrofitClient.gitHubApiService.addRepo(repoRequest).enqueue(object : Callback<Repo> {
+            override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
+                if (response.isSuccessful) {
                     showMessage("Repositorio creado exitosamente")
                     finish()
-
-                }else {
-                    val errorMessage = when (response.code()){
-                        401 -> "No autorizado"
-                        403 -> "Prohibido"
-                        404 -> "No encontrado"
-                        else -> "Error ${response.code()}"
-                    }
-                    showMessage("Error: $errorMessage")
-                }
-            }
-
-            override fun onFailure(call: Call<Repo?>, t: Throwable) {
-                val errorMsg = "Error al crear el repositorio: ${t.message}"
-                Log.d("RepoForm", errorMsg, t)
-                showMessage(errorMsg)
-            }
-        })
-
-    }
-
-    private fun updateRepo() {
-        val repoDescription = binding.repoDescriptionInput.text.toString().trim()
-
-        // Necesitamos el dueño y el nombre del repo que guardamos antes
-        if (repoOwner == null || repoNameToEdit == null) {
-            showMessage("Error: No se encontró la información del repositorio a editar.")
-            return
-        }
-
-        // Usaremos RepoRequest para la petición, asumiendo que tiene 'description'
-        // Si no, deberías crear un UpdateRepoRequest(val description: String)
-        val repoRequest = RepoRequest(name = "", description = repoDescription) // El 'name' se ignora en PATCH
-
-        val apiService = RetrofitClient.gitHubApiService
-        // Asegúrate de que tu apiService tenga un método `updateRepo`
-        val call = apiService.updateRepo(repoOwner!!, repoNameToEdit!!, repoRequest)
-
-        call.enqueue(object: Callback<Repo> {
-            override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
-                if (response.isSuccessful){
-                    showMessage("Repositorio actualizado exitosamente")
-                    finish()
                 } else {
-                    showMessage("Error al actualizar: ${response.code()}")
+                    showMessage("Error al crear: ${response.code()}")
                 }
             }
 
             override fun onFailure(call: Call<Repo>, t: Throwable) {
-                val errorMsg = "Error al actualizar el repositorio: ${t.message}"
-                Log.d("RepoForm", errorMsg, t)
-                showMessage(errorMsg)
+                showMessage("Fallo al crear el repositorio: ${t.message}")
+            }
+        })
+    }
+
+    /**
+     * Llama a la API para actualizar un repositorio existente.
+     */
+    private fun updateRepo() {
+        if (repoOwner == null || repoNameToEdit == null) {
+            showMessage("Error: No se pudo obtener la información para editar.")
+            return
+        }
+
+        val repoDescription = binding.repoDescriptionInput.text.toString().trim()
+
+        // Crea una instancia del modelo especial para actualizar, que solo tiene la descripción.
+        val updateRequest = UpdateRepoRequest(description = repoDescription)
+
+        // Llama al método `updateRepo` de la API con los datos correctos.
+        RetrofitClient.gitHubApiService.updateRepo(repoOwner!!, repoNameToEdit!!, updateRequest)
+            .enqueue(object : Callback<Repo> {
+                override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
+                    if (response.isSuccessful) {
+                        showMessage("Repositorio actualizado exitosamente")
+                        finish()
+                    } else {
+                        showMessage("Error al actualizar: ${response.code()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<Repo>, t: Throwable) {
+                    showMessage("Fallo al actualizar el repositorio: ${t.message}")
                 }
             })
     }

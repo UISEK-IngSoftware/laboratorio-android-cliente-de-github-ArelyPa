@@ -1,5 +1,6 @@
 package ec.edu.uisek.githubclient.services
 
+import ec.edu.uisek.githubclient.models.UpdateRepoRequest
 import ec.edu.uisek.githubclient.models.Repo
 import ec.edu.uisek.githubclient.models.RepoRequest
 import retrofit2.Call
@@ -12,29 +13,31 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GithubApiService {
-    @GET ("user/repos")
+    // Obtiene la lista de repositorios del usuario
+    @GET("user/repos")
     fun getRepos(
         @Query("sort") sort: String = "created",
         @Query("direction") direction: String = "desc"
     ): Call<List<Repo>>
 
-    @POST ("user/repos")
+    // Crea un nuevo repositorio
+    @POST("user/repos")
     fun addRepo(
         @Body repoRequest: RepoRequest
     ): Call<Repo>
 
-    // Función añadida para editar
+    // Editar
     @PATCH("repos/{owner}/{repo}")
     fun updateRepo(
         @Path("owner") owner: String,
         @Path("repo") repo: String,
-        @Body repoRequest: RepoRequest
+        @Body repoUpdateRequest: UpdateRepoRequest
     ): Call<Repo>
 
-    // Función añadida para eliminar
+    // Elimina un repositorio existente
     @DELETE("repos/{owner}/{repo}")
     fun deleteRepo(
         @Path("owner") owner: String,
         @Path("repo") repo: String
-    ): Call<Unit>
+    ): Call<Unit> // Unit significa que no esperamos respuesta en el cuerpo
 }

@@ -7,4 +7,7 @@
     <string name="test_lang">Kotlin</string>
     <string name="cancel">Cancelar</string>
     <string name="save">Guardar</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Eliminar</string>
+
 </resources>

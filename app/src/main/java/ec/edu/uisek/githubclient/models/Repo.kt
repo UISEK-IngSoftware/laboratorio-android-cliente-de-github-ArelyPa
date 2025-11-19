@@ -12,3 +12,7 @@ data class RepoRequest(
     val name: String,
     val description: String
 )
+
+data class UpdateRepoRequest(
+    val description: String
+)
