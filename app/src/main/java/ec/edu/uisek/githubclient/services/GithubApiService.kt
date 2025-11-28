@@ -26,7 +26,7 @@ interface GithubApiService {
         @Body repoRequest: RepoRequest
     ): Call<Repo>
 
-    // Editar
+    // Editar, owner: dueño del repositorio
     @PATCH("repos/{owner}/{repo}")
     fun updateRepo(
         @Path("owner") owner: String,

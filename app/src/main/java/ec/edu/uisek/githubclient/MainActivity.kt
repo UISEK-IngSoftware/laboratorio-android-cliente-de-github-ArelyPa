@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         val owner = repo.owner.login
         val repoName = repo.name
 
-        RetrofitClient.gitHubApiService.deleteRepo(owner, repoName).enqueue(object : Callback<Unit> {
+        RetrofitClient.getApiService().deleteRepo(owner, repoName).enqueue(object : Callback<Unit> {
             override fun onResponse(call: Call<Unit>, response: Response<Unit>) {
                 if (response.isSuccessful) {
                     showMessage("Repositorio '${repo.name}' eliminado correctamente")
@@ -96,7 +96,7 @@ class MainActivity : AppCompatActivity() {
 
     // Llama a la API para obtener la lista de repositorios del usuario
     private fun fetchRepositories() {
-        val apiService: GithubApiService = RetrofitClient.gitHubApiService
+        val apiService: GithubApiService = RetrofitClient.getApiService()
         val call = apiService.getRepos()
 
         call.enqueue(object : Callback<List<Repo>> {

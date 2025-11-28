@@ -16,7 +16,7 @@ import retrofit2.Response
 class RepoForm : AppCompatActivity() {
 
     private lateinit var binding: ActivityRepoFormBinding
-    private var isEditMode = false
+    private var isEditMode = false // Indica si el formulario es para editar o crear
     private var repoNameToEdit: String? = null
     private var repoOwner: String? = null
 
@@ -29,31 +29,26 @@ class RepoForm : AppCompatActivity() {
         isEditMode = intent.getBooleanExtra("IS_EDIT_MODE", false)
 
         if (isEditMode) {
-            // MODO EDICIÓN: Rellena los datos
+            // Edición: Rellena los datos
             title = "Editar Repositorio"
             repoNameToEdit = intent.getStringExtra("REPO_NAME")
             repoOwner = intent.getStringExtra("REPO_OWNER")
             val description = intent.getStringExtra("REPO_DESCRIPTION")
 
             binding.repoNameInput.setText(repoNameToEdit)
-            binding.repoNameInput.isEnabled = false
+            binding.repoNameInput.isEnabled = false //No se permite editar el nombre
             binding.repoDescriptionInput.setText(description)
         } else {
-            // MODO CREACIÓN: Deja los campos vacíos
             title = "Crear Nuevo Repositorio"
         }
 
         binding.cancelButton.setOnClickListener { finish() }
 
-        // --- ¡ESTE ES EL CAMBIO PRINCIPAL QUE DEBES HACER! ---
-        // Antes: binding.saveButton.setOnClickListener { createRepo() }
         // Ahora, debe llamar a handleSave() para que decida qué hacer.
         binding.saveButton.setOnClickListener { handleSave() }
     }
 
-    /**
-     * Decide si llamar a la función de crear o de actualizar.
-     */
+    //Decide si llamar a la función de crear o de actualizar.
     private fun handleSave() {
         // La validación del nombre solo es necesaria en modo creación.
         if (!isEditMode && !validateForm()) {
@@ -67,9 +62,7 @@ class RepoForm : AppCompatActivity() {
         }
     }
 
-    /**
-     * Valida que el nombre del repositorio no esté vacío y no contenga espacios.
-     */
+    //Valida que el nombre del repositorio no esté vacío y no contenga espacios.
     private fun validateForm(): Boolean {
         val repoName = binding.repoNameInput.text.toString()
         if (repoName.isBlank()) {
@@ -84,15 +77,13 @@ class RepoForm : AppCompatActivity() {
         return true
     }
 
-    /**
-     * Llama a la API para crear un nuevo repositorio.
-     */
+    // Llama a la API para crear un nuevo repositorio.
     private fun createRepo() {
         val repoName = binding.repoNameInput.text.toString().trim()
         val repoDescription = binding.repoDescriptionInput.text.toString().trim()
         val repoRequest = RepoRequest(repoName, repoDescription)
 
-        RetrofitClient.gitHubApiService.addRepo(repoRequest).enqueue(object : Callback<Repo> {
+        RetrofitClient.getApiService().addRepo(repoRequest).enqueue(object : Callback<Repo> {
             override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
                 if (response.isSuccessful) {
                     showMessage("Repositorio creado exitosamente")
@@ -108,9 +99,7 @@ class RepoForm : AppCompatActivity() {
         })
     }
 
-    /**
-     * Llama a la API para actualizar un repositorio existente.
-     */
+    // Llama a la API para actualizar un repositorio existente.
     private fun updateRepo() {
         if (repoOwner == null || repoNameToEdit == null) {
             showMessage("Error: No se pudo obtener la información para editar.")
@@ -122,8 +111,8 @@ class RepoForm : AppCompatActivity() {
         // Crea una instancia del modelo especial para actualizar, que solo tiene la descripción.
         val updateRequest = UpdateRepoRequest(description = repoDescription)
 
-        // Llama al método `updateRepo` de la API con los datos correctos.
-        RetrofitClient.gitHubApiService.updateRepo(repoOwner!!, repoNameToEdit!!, updateRequest)
+        // Llama al méttodo `updateRepo` de la API con los datos correctos.
+        RetrofitClient.getApiService().updateRepo(repoOwner!!, repoNameToEdit!!, updateRequest)
             .enqueue(object : Callback<Repo> {
                 override fun onResponse(call: Call<Repo>, response: Response<Repo>) {
                     if (response.isSuccessful) {

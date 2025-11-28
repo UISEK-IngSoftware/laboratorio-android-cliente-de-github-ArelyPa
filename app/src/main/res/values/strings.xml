@@ -10,4 +10,9 @@
     <string name="edit">Editar</string>
     <string name="delete">Eliminar</string>
 
+    <!--Pantalla Login -->
+    <string name="user">Usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="login">Ingresar</string>
+
 </resources>
